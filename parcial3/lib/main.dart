@@ -29,10 +29,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  int buscarItem = 0;
+  String margarita = "";
   Future<List<Resultado>> _getListado() async {
     var url =
         Uri.parse("http://www.thecocktaildb.com/api/json/v1/1/search.php?f=a");
     final respuesta = await http.get(url);
+    resultado = [];
     if (respuesta.statusCode == 200) {
       String body = utf8.decode(respuesta.bodyBytes);
       final jsonDatos = jsonDecode(body);
@@ -41,6 +44,26 @@ class _HomeState extends State<Home> {
         resultado.add(Resultado(item["strDrink"], item["strCategory"],
             item["strGlass"], item["strDrinkThumb"], item["strIngredient2"]));
       }
+      return resultado;
+    } else {
+      return throw Exception("Error de conexión");
+    }
+  }
+
+  Future<List<Resultado>> _getListadoBuscar() async {
+    var url = Uri.parse(
+        "http://www.thecocktaildb.com/api/json/v1/1/search.php?s=$margarita");
+    final respuesta = await http.get(url);
+    resultado = [];
+    if (respuesta.statusCode == 200) {
+      String body = utf8.decode(respuesta.bodyBytes);
+      final jsonDatos = jsonDecode(body);
+
+      for (var item in jsonDatos["drinks"]) {
+        resultado.add(Resultado(item["strDrink"], item["strCategory"],
+            item["strGlass"], item["strDrinkThumb"], item["strIngredient2"]));
+      }
+
       return resultado;
     } else {
       return throw Exception("Error de conexión");
@@ -97,14 +120,12 @@ class _HomeState extends State<Home> {
 
   Widget listado() {
     return FutureBuilder(
-      future: _getListado(),
+      future: buscarItem == 0 ? _getListado() : _getListadoBuscar(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return SizedBox(
             height: 575,
-            child: ListView(
-              children: _mostrarDatos(snapshot.data),
-            ),
+            child: ListView(children: _mostrarDatos(snapshot.data)),
           );
         } else if (snapshot.hasError) {
           return const Center(
@@ -158,7 +179,7 @@ class _HomeState extends State<Home> {
                           child: Column(
                             children: [
                               Text(
-                                resultado[i].ingredientes,
+                                resultado[i].nombre,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 20),
                               ),
@@ -202,12 +223,26 @@ class _HomeState extends State<Home> {
 
   Widget buscar() {
     return Container(
-      padding: const EdgeInsets.all(25),
-      child: const TextField(
-        decoration: InputDecoration(
+      padding: const EdgeInsets.all(10),
+      child: TextField(
+        onChanged: ((value) {
+          if (value.isNotEmpty) {
+            setState(() {
+              margarita = value;
+              _getListadoBuscar();
+              buscarItem++;
+            });
+          } else {
+            setState(() {
+              buscarItem = 0;
+            });
+          }
+        }),
+        decoration: const InputDecoration(
           hintText: 'Buscar coctel',
           prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(),
+          border:
+              OutlineInputBorder(borderSide: BorderSide(color: Colors.black)),
         ),
       ),
     );
