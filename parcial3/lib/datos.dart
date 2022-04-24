@@ -1,11 +1,12 @@
 class Resultado {
-  final int albumId;
-  final int id;
-  final String titulo;
-  final String img1;
-  final String img2;
+  final String nombre;
+  final String categoria;
+  final String strGlass;
+  final String imagen;
+  final String ingredientes;
 
-  Resultado(this.albumId, this.id, this.titulo, this.img1, this.img2);
+  Resultado(this.nombre, this.categoria, this.strGlass, this.imagen,
+      this.ingredientes);
 }
 
 List<Resultado> resultado = [];

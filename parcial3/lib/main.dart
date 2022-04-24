@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -29,15 +30,16 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Future<List<Resultado>> _getListado() async {
-    var url = Uri.parse("https://jsonplaceholder.typicode.com/photos");
+    var url =
+        Uri.parse("http://www.thecocktaildb.com/api/json/v1/1/search.php?f=a");
     final respuesta = await http.get(url);
     if (respuesta.statusCode == 200) {
       String body = utf8.decode(respuesta.bodyBytes);
       final jsonDatos = jsonDecode(body);
 
-      for (var item in jsonDatos) {
-        resultado.add(Resultado(item["albumId"], item["id"], item["title"],
-            item["url"], item["thumbnailUrl"]));
+      for (var item in jsonDatos["drinks"]) {
+        resultado.add(Resultado(item["strDrink"], item["strCategory"],
+            item["strGlass"], item["strDrinkThumb"], item["strIngredient2"]));
       }
       return resultado;
     } else {
@@ -49,6 +51,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: const Color.fromARGB(255, 44, 24, 48),
           title: const Text("Parcial 3"),
         ),
         body: detalle());
@@ -83,10 +86,10 @@ class _HomeState extends State<Home> {
   Widget detalle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Container(
-        height: 500,
+      child: SizedBox(
+        height: 575,
         child: ListView(
-          children: [titulo(), listado()],
+          children: [buscar(), listado()],
         ),
       ),
     );
@@ -98,7 +101,7 @@ class _HomeState extends State<Home> {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return SizedBox(
-            height: 600,
+            height: 575,
             child: ListView(
               children: _mostrarDatos(snapshot.data),
             ),
@@ -120,31 +123,93 @@ class _HomeState extends State<Home> {
     List<Widget> datosResultado = [];
 
     for (var item in data) {
-      datosResultado.add(Container(
-        decoration: const BoxDecoration(
-            border: Border(
-                bottom: BorderSide(color: Color.fromARGB(255, 167, 166, 166)))),
-        height: 100,
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(resultado[i].id.toString()),
-          SizedBox(width: 75, child: Text(resultado[i].titulo)),
-          Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                image: DecorationImage(
-                    image: NetworkImage(resultado[i].img1), fit: BoxFit.cover)),
-            width: 70,
-            height: 70,
-          ),
-          SizedBox(
-              width: 50,
-              height: 50,
-              child: Image(image: NetworkImage(resultado[i].img2)))
-        ]),
-      ));
+      datosResultado.add(
+        Center(
+            child: SizedBox(
+          width: 400,
+          child: Column(children: [
+            Card(
+              elevation: 8,
+              shadowColor: Colors.purple,
+              shape: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                      color: Color.fromARGB(255, 231, 92, 92), width: 1)),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10, top: 25, bottom: 25),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            image: DecorationImage(
+                                image: NetworkImage(resultado[i].imagen),
+                                fit: BoxFit.cover),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: Column(
+                            children: [
+                              Text(
+                                resultado[i].ingredientes,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                              Row(
+                                children: [
+                                  Column(
+                                    children: [
+                                      texto("Categoria"),
+                                      SizedBox(
+                                          width: 60,
+                                          child: Text(resultado[i].categoria)),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Column(
+                                    children: [
+                                      texto("Tipo de vaso"),
+                                      SizedBox(
+                                          width: 100,
+                                          child: Text(resultado[i].strGlass)),
+                                    ],
+                                  )
+                                ],
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ]),
+        )),
+      );
       i++;
     }
     return datosResultado;
+  }
+
+  Widget buscar() {
+    return Container(
+      padding: const EdgeInsets.all(25),
+      child: const TextField(
+        decoration: InputDecoration(
+          hintText: 'Buscar coctel',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
   }
 }
