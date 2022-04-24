@@ -54,16 +54,17 @@ class _HomeState extends State<Home> {
     var url = Uri.parse(
         "http://www.thecocktaildb.com/api/json/v1/1/search.php?s=$margarita");
     final respuesta = await http.get(url);
-    resultado = [];
     if (respuesta.statusCode == 200) {
       String body = utf8.decode(respuesta.bodyBytes);
       final jsonDatos = jsonDecode(body);
 
-      for (var item in jsonDatos["drinks"]) {
-        resultado.add(Resultado(item["strDrink"], item["strCategory"],
-            item["strGlass"], item["strDrinkThumb"], item["strIngredient2"]));
+      if (jsonDatos["drinks"] != null) {
+        resultado = [];
+        for (var item in jsonDatos["drinks"]) {
+          resultado.add(Resultado(item["strDrink"], item["strCategory"],
+              item["strGlass"], item["strDrinkThumb"], item["strIngredient2"]));
+        }
       }
-
       return resultado;
     } else {
       return throw Exception("Error de conexión");
@@ -178,10 +179,14 @@ class _HomeState extends State<Home> {
                           padding: const EdgeInsets.only(left: 20),
                           child: Column(
                             children: [
-                              Text(
-                                resultado[i].nombre,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              SizedBox(
+                                width: 180,
+                                child: Text(
+                                  resultado[i].nombre,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20),
+                                ),
                               ),
                               Row(
                                 children: [
